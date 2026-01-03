@@ -1,49 +1,72 @@
-# teleoperation.py - Operating our robotic arm using hand tracking
+# teleoperation.py
+# Minimal hand → joint teleoperation (1 DOF prototype)
 
-
+import cv2
+import math
 from simulation import RoboticArm
 from hand_tracker import HandTracker
-import cv2
 
-def mao_landmarks_to_joint_positions(landmarks):
-    # dummy implementation
-    joint_positions = [0,1,2]
-    """for lm in landmarks:
-        joint_positions.append(lm.x) # example mappping
-        return joint_positions[:2]"""
-    
+
+def compute_angle(a, b, c):
+    bax = a[0] - b[0]
+    bay = a[1] - b[1]
+    bcx = c[0] - b[0]
+    bcy = c[1] - b[1]
+
+    dot = bax * bcx + bay * bcy
+    mag1 = math.hypot(bax, bay)
+    mag2 = math.hypot(bcx, bcy)
+
+    if mag1 == 0 or mag2 == 0:
+        return math.pi
+
+    cosang = max(-1.0, min(1.0, dot / (mag1 * mag2)))
+    return math.acos(cosang)
+
+
+def map_hand_to_joint(hand_landmarks):
+    p5 = (hand_landmarks[5].x, hand_landmarks[5].y)
+    p6 = (hand_landmarks[6].x, hand_landmarks[6].y)
+    p8 = (hand_landmarks[8].x, hand_landmarks[8].y)
+
+    angle = compute_angle(p5, p6, p8)
+
+    curl = (math.pi - angle) / (math.pi * 0.7)
+    curl = max(0.0, min(1.0, curl))
+    joint_angle = -1.5 + curl * 3.0
+    return joint_angle
+
 
 def main():
-    urdf_path = "sample_urdfs/single_joint_arm.xml"
-    robotic_arm = RoboticArm(urdf_path)
-    cap = cv2.VideoCapture(0)
+    urdf_file = "sample_urdfs/single_joint_arm.xml"
+    robot = RoboticArm(urdf_file)
     tracker = HandTracker()
+    cap = cv2.VideoCapture(0)
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break 
+    try:
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        landmarks = tracker.process_frame(frame)
-        frame = tracker.draw_landmarks(frame, landmarks)
-        cv2.imshow('hand Tracking', frame)
+            hands = tracker.process_frame(frame)
+            frame = tracker.draw_landmarks(frame, hands)
+            cv2.imshow("Hand Tracking", frame)
 
-        if landmarks:
-            joint_positions = mao_landmarks_to_joint_positions(landmarks[0])
-            joint_indices = [0,1,2]
-            robotic_arm.set_joint_position(joint_indices, joint_positions)
-            robotic_arm.step_simulation(steps=1)
+            if hands:
+                joint_angle = map_hand_to_joint(hands[0])
+                robot.set_joint_position([0], [joint_angle])
+                robot.step_simulation(steps=1)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+    finally:
         tracker.close()
         cap.release()
         cv2.destroyAllWindows()
-
-    robotic_arm.disconnect()
+        robot.disconnect()
 
 
 if __name__ == "__main__":
     main()
-
-

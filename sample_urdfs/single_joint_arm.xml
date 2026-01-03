@@ -1,20 +1,24 @@
 <?xml version="1.0"?>
 <robot name="single_joint_arm">
 
+  <!-- Base (fixed) -->
   <link name="base_link">
     <inertial>
-      <mass value="1.0"/>
       <origin xyz="0 0 0"/>
+      <mass value="1.0"/>
       <inertia
-        ixx="0.01" ixy="0.0" ixz="0.0"
-        iyy="0.01" iyz="0.0"
+        ixx="0.01" ixy="0" ixz="0"
+        iyy="0.01" iyz="0"
         izz="0.01"/>
     </inertial>
+
     <visual>
       <geometry>
         <box size="0.2 0.2 0.05"/>
       </geometry>
+      <material name="gray"/>
     </visual>
+
     <collision>
       <geometry>
         <box size="0.2 0.2 0.05"/>
@@ -22,33 +26,40 @@
     </collision>
   </link>
 
+  <!-- Moving link -->
   <link name="link_1">
     <inertial>
-      <mass value="0.5"/>
       <origin xyz="0 0 0.15"/>
+      <mass value="0.5"/>
       <inertia
-        ixx="0.005" ixy="0.0" ixz="0.0"
-        iyy="0.005" iyz="0.0"
+        ixx="0.005" ixy="0" ixz="0"
+        iyy="0.005" iyz="0"
         izz="0.005"/>
     </inertial>
+
     <visual>
       <geometry>
-        <cylinder radius="0.03" length="0.3"/>
+        <box size="0.05 0.05 0.3"/>
       </geometry>
+      <origin xyz="0 0 0.15"/>
+      <material name="blue"/>
     </visual>
+
     <collision>
       <geometry>
-        <cylinder radius="0.03" length="0.3"/>
+        <box size="0.05 0.05 0.3"/>
       </geometry>
+      <origin xyz="0 0 0.15"/>
     </collision>
   </link>
 
+  <!-- Revolute joint -->
   <joint name="joint_1" type="revolute">
     <parent link="base_link"/>
     <child link="link_1"/>
     <origin xyz="0 0 0.025"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-1.57" upper="1.57" effort="5" velocity="1.0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.5" upper="1.5" effort="5" velocity="2.0"/>
   </joint>
 
 </robot>
