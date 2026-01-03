@@ -27,16 +27,12 @@ class HandTracker:
 
         self.landmarker = HandLandmarker.create_from_options(options)
 
-    def process_frame(self, frame_bgr):
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-
-        mp_image = mp.Image(
-            image_format=mp.ImageFormat.SRGB,
-            data=frame_rgb,
-        )
-
-        result = self.landmarker.detect(mp_image)
-        return result.hand_landmarks
+    def process_frame(self, frame):
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+        detection_result = self.landmarker.detect(mp_image)
+        self.landmarks = detection_result.hand_landmarks
+        return self.landmarks
 
     def draw_landmarks(self, frame, hand_landmarks):
         if not hand_landmarks:
