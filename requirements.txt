@@ -7,3 +7,4 @@ pillow
 matplotlib
 tqdm
 scipy
+pybullet
