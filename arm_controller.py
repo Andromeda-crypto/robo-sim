@@ -47,6 +47,11 @@ class ArmController:
                 "Failed to load URDF 'franka_panda/panda.urdf'. "
                 "Check that pybullet_data is installed correctly and the path above contains franka_panda/."
             )
+        # Scene
+        p.loadURDF("plane.urdf")
+        p.loadURDF("table/table.urdf", basePosition=[0.5, 0, -0.65], useFixedBase=True)
+        self.cube_id = p.loadURDF("cube_small.urdf", basePosition=[0.55, 0.0, 0.05])
+
 
         nj = p.getNumJoints(self.robot)
         print("Loaded robot id:", self.robot, "num joints:", nj)
@@ -57,6 +62,12 @@ class ArmController:
         self.arm_joints = list(range(7))
         # End-effector link index (panda_hand)
         self.ee_link = 8
+        self.gripper_joints = [9, 10]
+        self.gripper_limits = {}
+        for j in self.gripper_joints:
+            info = p.getJointInfo(self.robot, j)
+            self.gripper_limits[j] = (info[8], info[9])  
+
 
         # Cache joint limits
         self.joint_limits = {}
@@ -151,8 +162,30 @@ class ArmController:
 
 
     def disconnect(self):
-        if p.isConnected():
-            try:
+        """Cleanly disconnect from PyBullet physics server."""
+        try:
+            if p.isConnected():
                 p.disconnect(self.cid)
+        except Exception:
+            # If disconnect fails, try disconnecting all connections
+            try:
+                p.disconnect()
             except Exception:
                 pass
+
+    def set_gripper(self, opening):
+        """
+        opening: 0.0 (closed) to 0.04 (open) approx for Panda fingers
+        """
+        opening = max(0.0, min(0.04, float(opening)))
+        for j in self.gripper_joints:
+            p.setJointMotorControl2(
+                bodyUniqueId=self.robot,
+                jointIndex=j,
+                controlMode=p.POSITION_CONTROL,
+                targetPosition=opening,
+                force=100,
+                positionGain=0.3,
+                velocityGain=1.0,
+            )
+
