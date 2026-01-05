@@ -8,7 +8,7 @@ from mediapipe.tasks.python.vision import HandLandmarker, HandLandmarkerOptions
 class HandTracker:
     def __init__(
         self,
-        model_path="hand_landmarker.task",
+        model_path="data/models/hand_landmarker.task",
         num_hands=6,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,

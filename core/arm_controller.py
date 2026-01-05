@@ -50,7 +50,10 @@ class ArmController:
         # Scene
         p.loadURDF("plane.urdf")
         p.loadURDF("table/table.urdf", basePosition=[0.5, 0, -0.65], useFixedBase=True)
-        self.cube_id = p.loadURDF("cube_small.urdf", basePosition=[0.55, 0.0, 0.05])
+        
+        # Initial cube position (Phase 2: task definition)
+        self.initial_cube_pos = [0.55, 0.0, 0.05]
+        self.cube_id = p.loadURDF("cube_small.urdf", basePosition=self.initial_cube_pos)
 
 
         nj = p.getNumJoints(self.robot)
@@ -188,4 +191,59 @@ class ArmController:
                 positionGain=0.3,
                 velocityGain=1.0,
             )
+    
+    def get_cube_pose(self):
+        """
+        Get current cube position and orientation.
+        
+        Returns:
+            pos: [x, y, z] position
+            orn: [qx, qy, qz, qw] orientation quaternion
+        """
+        pos, orn = p.getBasePositionAndOrientation(self.cube_id)
+        return list(pos), list(orn)
+    
+    def get_all_joint_positions(self):
+        """
+        Get all joint positions including arm and gripper.
+        
+        Returns:
+            arm_positions: List of 7 arm joint positions
+            gripper_positions: List of 2 gripper joint positions
+        """
+        arm_pos = [p.getJointState(self.robot, j)[0] for j in self.arm_joints]
+        gripper_pos = [p.getJointState(self.robot, j)[0] for j in self.gripper_joints]
+        return arm_pos, gripper_pos
+    
+    def reset_scene(self, initial_cube_pos=None):
+        """
+        Reset scene to initial state for replay.
+        
+        Args:
+            initial_cube_pos: Optional custom initial cube position.
+                            If None, uses the original initial position.
+        """
+        if initial_cube_pos is None:
+            initial_cube_pos = self.initial_cube_pos
+        
+        # Reset arm to neutral pose
+        neutral = [0, -0.5, 0, -2.2, 0, 2.0, 0.8]
+        for j, q in zip(self.arm_joints, neutral):
+            p.resetJointState(self.robot, j, q)
+        
+        # Reset gripper to open
+        for j in self.gripper_joints:
+            p.resetJointState(self.robot, j, 0.04)
+        
+        # Reset cube to initial position
+        p.resetBasePositionAndOrientation(
+            self.cube_id,
+            initial_cube_pos,
+            [0, 0, 0, 1]  # No rotation
+        )
+        
+        # Reset velocities to zero
+        p.resetBaseVelocity(self.cube_id, [0, 0, 0], [0, 0, 0])
+        for j in self.arm_joints + self.gripper_joints:
+            p.resetJointState(self.robot, j, p.getJointState(self.robot, j)[0], 0.0)
 
