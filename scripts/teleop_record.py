@@ -17,7 +17,7 @@ from core.arm_controller import ArmController
 from core.hand_tracker import HandTracker
 from phase2.data_recorder import EpisodeRecorder
 from phase2.task_evaluation import evaluate_episode, visualize_target_zone, TARGET_ZONE
-from scripts.teleop_ik import (
+from teleop_ik import (
     SENS_Y, SENS_Z, PINCH_CLOSE_T, PINCH_OPEN_T,
     GRIP_OPEN, GRIP_CLOSED, FIXED_X, WORKSPACE_Y, WORKSPACE_Z,
     ALPHA_EMA, LOST_HOLD_SEC, FINE_STEP,

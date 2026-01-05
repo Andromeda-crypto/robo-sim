@@ -3,6 +3,7 @@
 ## Overview
 
 Phase 2 adds data collection and replay capabilities to the teleoperation system. You can now:
+
 - Record teleoperation episodes
 - Replay recorded episodes
 - Evaluate success metrics
@@ -17,7 +18,9 @@ python teleop_record.py
 ```
 
 **Controls:**
+
 - `SPACE`: Start/Stop recording
+
 - `R`: Recenter hand position
 - `Q`: Quit
 - `WASD`: Fine-adjust controls
@@ -63,7 +66,6 @@ Interactive browser to view and replay episodes.
 
 ## File Structure
 
-```
 robo-sim/
 ├── teleop_record.py      # Teleoperation with recording (Phase 2)
 ├── replay.py              # Episode replay system
@@ -73,11 +75,11 @@ robo-sim/
 ├── data_recorder.py       # Episode recording pipeline
 ├── episodes/              # Recorded episode files (.npz)
 └── dataset_index.csv     # Dataset index with metadata
-```
 
 ## Success Criteria
 
 An episode is considered successful if:
+
 1. **Lifted**: Cube was lifted at least 15cm above initial height
 2. **In Target Zone**: Final cube position is within the target zone
 3. **Time Limit**: Completed within 20 seconds (optional)
@@ -85,6 +87,7 @@ An episode is considered successful if:
 ## Episode Data Format
 
 Episodes are saved as `.npz` files containing:
+
 - **Metadata**: Episode ID, timestamp, duration, task info
 - **States**: Joint positions, gripper state, end-effector pose, cube pose
 - **Actions**: Target poses, gripper commands
@@ -107,7 +110,7 @@ Episodes are saved as `.npz` files containing:
 ## Next Steps (Phase 3)
 
 After collecting a dataset, Phase 3 could include:
+
 - Training imitation learning models
 - Behavioral cloning from demonstrations
 - Policy learning from successful episodes
-
