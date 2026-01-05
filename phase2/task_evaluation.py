@@ -1,10 +1,7 @@
 # task_evaluation.py - Phase 2: Task definition and success evaluation
 #
 # Task: Pick cube from initial position and place it in target zone
-# Success criteria:
-#   1. Cube was lifted (height > threshold)
-#   2. Cube final position is within target zone
-#   3. Optional: Completed within time limit
+
 
 import numpy as np
 
@@ -19,8 +16,8 @@ TARGET_ZONE = {
 }
 
 # Success thresholds
-LIFT_HEIGHT_THRESHOLD = 0.15  # Cube must be lifted at least 15cm
-TIME_LIMIT = 20.0  # Maximum time in seconds (optional, set to None to disable)
+LIFT_HEIGHT_THRESHOLD = 0.15  
+TIME_LIMIT = 20.0  
 
 
 
@@ -88,15 +85,15 @@ def evaluate_episode(state_log):
             'details': 'Empty episode'
         }
     
-    # Convert to numpy for easier computation
+
     positions = np.array(cube_positions)
     
-    # Check 1: Was cube lifted?
+  
     max_height = float(np.max(positions[:, 2]))  # Z is height
     initial_height = float(positions[0, 2])
     lifted = max_height > (initial_height + LIFT_HEIGHT_THRESHOLD)
     
-    # Check 2: Is final position in target zone?
+
     final_position = positions[-1].tolist()
     in_target_zone = point_in_box(
         final_position,
@@ -104,7 +101,7 @@ def evaluate_episode(state_log):
         TARGET_ZONE["size"]
     )
     
-    # Check 3: Time limit (if timestamps provided)
+    
     within_time_limit = True
     if TIME_LIMIT is not None and 'timestamps' in state_log:
         timestamps = state_log['timestamps']
@@ -163,7 +160,7 @@ def visualize_target_zone(visual_shape_id=None):
     """
     import pybullet as p
     
-    # Create a box shape for the target zone
+
     box_size = TARGET_ZONE["size"]
     visual_shape = p.createVisualShape(
         shapeType=p.GEOM_BOX,
@@ -171,7 +168,7 @@ def visualize_target_zone(visual_shape_id=None):
         rgbaColor=[0, 1, 0, 0.3]  # Semi-transparent green
     )
     
-    # Create a multi-body for the visual (or update existing)
+
     if visual_shape_id is None:
         target_zone_id = p.createMultiBody(
             baseMass=0,
@@ -180,7 +177,7 @@ def visualize_target_zone(visual_shape_id=None):
         )
         return target_zone_id
     else:
-        # Update existing
+    
         p.resetBasePositionAndOrientation(
             visual_shape_id,
             TARGET_ZONE["center"],

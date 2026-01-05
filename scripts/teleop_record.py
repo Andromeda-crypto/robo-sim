@@ -29,7 +29,7 @@ def draw_recording_overlay(frame, is_recording, episode_id, num_timesteps):
     """Add recording status to overlay."""
     h, w = frame.shape[:2]
     
-    # Recording indicator
+
     if is_recording:
         # Red blinking indicator
         color = (0, 0, 255) if int(time.time() * 2) % 2 == 0 else (0, 100, 255)
@@ -37,7 +37,6 @@ def draw_recording_overlay(frame, is_recording, episode_id, num_timesteps):
         cv2.putText(frame, "REC", (w - 60, 35), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         
-        # Episode info
         if episode_id:
             cv2.putText(frame, f"Episode: {episode_id}", (w - 200, 60),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
@@ -63,8 +62,7 @@ def main():
         # Initialize controller
         ctrl = ArmController(gui=True)
         print("Robot controller initialized")
-        
-        # Visualize target zone
+
         target_zone_visual = visualize_target_zone()
         print(f"Target zone visualized at {TARGET_ZONE['center']}")
         
@@ -110,18 +108,13 @@ def main():
                 print("Warning: Failed to read frame from camera")
                 break
             
-            # Process hand tracking
             hands = tracker.process_frame(frame)
-            
-            # Draw hand landmarks
             try:
                 frame = tracker.draw_landmarks(frame, hands)
             except (TypeError, AttributeError):
                 pass
             
             now = time.time()
-            
-            # Handle hand detection
             target_ee_pos = None
             gripper_cmd = None
             
@@ -139,7 +132,6 @@ def main():
                 
                 last_seen = now
                 
-                # Pinch detection
                 pinch_dist = pinch_distance(hands[0])
                 if grip_state == "open" and pinch_dist < PINCH_CLOSE_T:
                     grip_state = "closed"

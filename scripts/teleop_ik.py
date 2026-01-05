@@ -1,17 +1,8 @@
 # teleop_ik.py -: Hand gesture teleoperation with gripper control
-# 
-# Phase 1 Requirements:
-# - Stable, predictable teleop
-# - Pinch to open/close gripper
-# - Pick up cube and place it
-# - Clean 20-40s demo
-
-import os
-os.environ["MEDIAPIPE_DISABLE_GPU"] = "1"
 
 import sys
 import os
-# Add parent directory to path for imports
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
@@ -24,9 +15,9 @@ from core.hand_tracker import HandTracker
 
 FIXED_X = 0.55 
 WORKSPACE_Y = (-0.30, 0.30)
-WORKSPACE_Z = (0.10, 0.60)  # Lowered min to allow reaching cube at z=0.05
+WORKSPACE_Z = (0.10, 0.60)  
 
-# Hand-to-robot mapping sensitivity
+
 SENS_Y = 0.6  # Horizontal (left-right)
 SENS_Z = 0.6  # Vertical (up-down)
 
@@ -43,7 +34,7 @@ ALPHA_EMA = 0.85
 LOST_HOLD_SEC = 0.3  
 
 
-FINE_STEP = 0.01  # 1cm steps
+FINE_STEP = 0.01  
 
 
 
@@ -126,28 +117,28 @@ def draw_overlay(frame, hands, gripper_state, target_pos, fine_adjust_active):
     y_offset = 30
     line_height = 25
     
-    # Hands detected
+
     num_hands = 0 if not hands else len(hands)
     cv2.putText(frame, f"Hands: {num_hands}", (20, y_offset), 
                 font, font_scale, color, thickness)
     
-    # Gripper state
+  
     grip_color = (0, 255, 0) if gripper_state == "closed" else (0, 200, 255)
     cv2.putText(frame, f"Gripper: {gripper_state.upper()}", (20, y_offset + line_height),
                 font, font_scale, grip_color, thickness)
     
-    # Target position
+    
     if target_pos is not None:
         pos_str = f"Target: [{target_pos[0]:.2f}, {target_pos[1]:.2f}, {target_pos[2]:.2f}]"
         cv2.putText(frame, pos_str, (20, y_offset + 2*line_height),
                     font, font_scale, color, thickness)
     
-    # Fine-adjust indicator
+
     if fine_adjust_active:
         cv2.putText(frame, "FINE-ADJUST MODE", (20, y_offset + 3*line_height),
                     font, 0.5, (255, 255, 0), thickness)
     
-    # Instructions
+   
     cv2.putText(frame, "Q: quit | R: recenter | WASD: fine-adjust", (20, y_offset + 4*line_height),
                 font, 0.4, (200, 200, 200), thickness)
     
@@ -165,11 +156,11 @@ def main():
     cap = None
     
     try:
-        # Initialize controller (creates PyBullet GUI)
+  
         ctrl = ArmController(gui=True)
         print("Robot controller initialized")
         
-        # Initialize hand tracker
+    
         tracker = HandTracker()
         print("Hand tracker initialized")
         
@@ -183,7 +174,7 @@ def main():
         print("Press 'r' to recenter, 'q' to quit")
         print("WASD keys for fine-adjust (W=up, S=down, A=left, D=right)")
         
-        # State variables
+      
         grip_state = "open"
         filtered_pos = None
         neutral_wrist = None
@@ -199,19 +190,17 @@ def main():
                 print("Warning: Failed to read frame from camera")
                 break
             
-            # Process hand tracking
+           
             hands = tracker.process_frame(frame)
             
-            # Draw hand landmarks
+  
             try:
                 frame = tracker.draw_landmarks(frame, hands)
             except (TypeError, AttributeError):
-                # Handle case where hands is None or empty
+  
                 pass
             
             now = time.time()
-            
-            # Handle hand detection
             if hands and len(hands) > 0:
                 wrist = hands[0][0]
                 if neutral_wrist is None:
@@ -231,25 +220,20 @@ def main():
                 elif grip_state == "closed" and pinch_dist > PINCH_OPEN_T:
                     grip_state = "open"
                 
-                # Control gripper
                 ctrl.set_gripper(GRIP_CLOSED if grip_state == "closed" else GRIP_OPEN)
                 
             else:
-                # Hand lost - hold last position for short time
                 if filtered_pos is not None and (now - last_seen) < LOST_HOLD_SEC:
                     ctrl.set_target_pose(filtered_pos, orn_fixed)
-            
-            # Step simulation
+        
             try:
                 ctrl.step()
             except RuntimeError as e:
                 print(f"Simulation error: {e}")
                 break
-            
-            # Draw overlay
+        
             frame = draw_overlay(frame, hands, grip_state, filtered_pos, fine_adjust_active)
             
-            # Handle keyboard input
             key = cv2.waitKey(1) & 0xFF
             
             if key == ord("q"):
